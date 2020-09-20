@@ -89,6 +89,34 @@ describe("Gilded Rose", function() {
         update_quality();
         expect(items[0].quality).toEqual(0);
       });
+
+      it("should reduce sell_in by 1", () => {
+        items = [ new Item('Backstage passes to a TAFKAL80ETC concert', 15, 20) ];
+        update_quality();
+        expect(items[0].sell_in).toEqual(14);
+      });
+
+      it('The Quality of an item is never more than 50', () => {
+        items = [ new Item('Backstage passes to a TAFKAL80ETC concert', 15, 49) ];
+        update_quality();
+        update_quality();
+        update_quality();
+        expect(items[0].quality).toEqual(50);
+      });
+    });
+
+    describe('Conjured', () => {
+      it('should degrade in Quality twice as fast as normal items', () => {
+        items = [ new Item('Conjured Mana Cake', 15, 10) ];
+        update_quality();
+        expect(items[0].quality).toEqual(8);
+      });
+
+      it("should reduce sell_in by 1", () => {
+        items = [ new Item('Conjured Mana Cake', 3, 10) ];
+        update_quality();
+        expect(items[0].sell_in).toEqual(2);
+      });
     });
   });
 });

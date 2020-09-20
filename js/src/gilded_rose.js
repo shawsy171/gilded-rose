@@ -12,18 +12,27 @@ function update_quality() {
   const MIN_QUALITY = 0;
   const sulfurasRegex = new RegExp(/^Sulfuras/);
   const backstageRegex = new RegExp(/^Backstage passes/);
+  const conjuredRegex = new RegExp(/^Conjured/);
 
   items.forEach(item => {
     if(sulfurasRegex.test(item.name)) return;
 
     if(backstageRegex.test(item.name)) {
-      const increaseQualityValue = item.sell_in < 0 ? -item.quality
+      const increaseQualityValue =
+        item.sell_in < 0 ? -item.quality
         : item.sell_in > 10 ? 1
         : item.sell_in > 6 ? 2
         : 3;
-      item.quality = Math.max(item.quality + increaseQualityValue, MIN_QUALITY);
+
+      item.quality = Math.min(item.quality + increaseQualityValue, MAX_QUALITY);
       item.sell_in--;
 
+      return;
+    }
+
+    if(conjuredRegex.test(item.name)) {
+      item.quality = Math.max(item.quality - 2, MIN_QUALITY);
+      item.sell_in--;
       return;
     }
 
