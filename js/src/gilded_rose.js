@@ -6,7 +6,7 @@ function Item(name, sell_in, quality) {
 
 var items = []
 
-function update_quality() {
+function update_quality(items) {
   const AGED_BRIE = 'Aged Brie';
   const BACKSTAGE_PASSES = 'Backstage passes';
   const CONJURED = 'Conjured';
@@ -26,30 +26,40 @@ function update_quality() {
     [ITEM]: { qualityUpdateValue: item.sell_in === 0 ? -2 : -1 }
   })
 
-  const setQuailty = (item, qualityUpdateValue) => {
-    const MAX_QUALITY = 50;
-    const MIN_QUALITY = 0;
-    item.quality = Math.max(Math.min(item.quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
+  const getType = (name) => {
+    const isBackstagePass = new RegExp('^' + BACKSTAGE_PASSES, "g").test(name);
+    const isConjured = new RegExp('^' + CONJURED, 'g').test(name);
+    const isAgedBrie = name === AGED_BRIE;
+
+    return (
+      isConjured ? CONJURED
+      : isBackstagePass ? BACKSTAGE_PASSES
+      : isAgedBrie ? AGED_BRIE
+      : ITEM
+    )
+
   }
 
-  items.forEach(item => {
-    const { name } = item;
+  const setQuality = (quality, qualityUpdateValue) => {
+    const MAX_QUALITY = 50;
+    const MIN_QUALITY = 0;
+    return Math.max(Math.min(quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
+  }
+
+  return items.map(item => {
+    const { name, sell_in, quality } = item;
 
     const sulfurasRegex = new RegExp('^' + SULFURAS, "g");
-    const backstageRegex = new RegExp('^' + BACKSTAGE_PASSES, "g");
-    const conjuredRegex = new RegExp('^' + CONJURED, 'g');
+    if(sulfurasRegex.test(name)) return item;
 
-    if(sulfurasRegex.test(name)) return;
-
-    const type =
-      conjuredRegex.test(name) ? CONJURED
-      : backstageRegex.test(name) ? BACKSTAGE_PASSES
-      : name === AGED_BRIE ? AGED_BRIE
-      : ITEM
+    const type = getType(name);
 
     const { qualityUpdateValue } = updateValues(item)[type];
 
-    setQuailty(item, qualityUpdateValue);
-    item.sell_in--;
+    return {
+      name,
+      quality: setQuality(quality, qualityUpdateValue),
+      sell_in: sell_in - 1,
+    }
   });
 };
