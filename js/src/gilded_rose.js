@@ -7,49 +7,34 @@ function Item(name, sell_in, quality) {
 var items = []
 
 function update_quality() {
-  for (var i = 0; i < items.length; i++) {
-    if (items[i].name != 'Aged Brie' && items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-      if (items[i].quality > 0) {
-        if (items[i].name != 'Sulfuras, Hand of Ragnaros') {
-          items[i].quality = items[i].quality - 1
-        }
-      }
-    } else {
-      if (items[i].quality < 50) {
-        items[i].quality = items[i].quality + 1
-        if (items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-          if (items[i].sell_in < 11) {
-            if (items[i].quality < 50) {
-              items[i].quality = items[i].quality + 1
-            }
-          }
-          if (items[i].sell_in < 6) {
-            if (items[i].quality < 50) {
-              items[i].quality = items[i].quality + 1
-            }
-          }
-        }
-      }
+  const AGED_BRIE = 'Aged Brie';
+  const MAX_QUALITY = 50;
+  const MIN_QUALITY = 0;
+  const sulfurasRegex = new RegExp(/^Sulfuras/);
+  const backstageRegex = new RegExp(/^Backstage passes/);
+
+  items.forEach(item => {
+    if(sulfurasRegex.test(item.name)) return;
+
+    if(backstageRegex.test(item.name)) {
+      const increaseQualityValue = item.sell_in < 0 ? -item.quality
+        : item.sell_in > 10 ? 1
+        : item.sell_in > 6 ? 2
+        : 3;
+      item.quality = Math.max(item.quality + increaseQualityValue, MIN_QUALITY);
+      item.sell_in--;
+
+      return;
     }
-    if (items[i].name != 'Sulfuras, Hand of Ragnaros') {
-      items[i].sell_in = items[i].sell_in - 1;
+
+    if(item.name === AGED_BRIE) {
+      item.quality = Math.min(item.quality + 1, MAX_QUALITY);
+      return;
     }
-    if (items[i].sell_in < 0) {
-      if (items[i].name != 'Aged Brie') {
-        if (items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-          if (items[i].quality > 0) {
-            if (items[i].name != 'Sulfuras, Hand of Ragnaros') {
-              items[i].quality = items[i].quality - 1
-            }
-          }
-        } else {
-          items[i].quality = items[i].quality - items[i].quality
-        }
-      } else {
-        if (items[i].quality < 50) {
-          items[i].quality = items[i].quality + 1
-        }
-      }
-    }
-  }
+
+    // item
+    const reduceQualityValue = item.sell_in <= 0 ? 2 : 1
+    item.sell_in--;
+    item.quality = Math.max(item.quality - reduceQualityValue, MIN_QUALITY);
+  });
 }
