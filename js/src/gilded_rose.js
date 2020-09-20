@@ -14,7 +14,6 @@ function update_quality() {
   const ITEM = 'Item'
 
   const updateValues = (item) => ({
-    [SULFURAS]: { sellInUpdateValue: 0 },
     [CONJURED]: { qualityUpdateValue: -2 },
     [AGED_BRIE]: { qualityUpdateValue: 1 },
     [BACKSTAGE_PASSES]: {
@@ -27,45 +26,30 @@ function update_quality() {
     [ITEM]: { qualityUpdateValue: item.sell_in === 0 ? -2 : -1 }
   })
 
-  const getUpdateValues = (item, updateValues) => {
+  const setQuailty = (item, qualityUpdateValue) => {
+    const MAX_QUALITY = 50;
+    const MIN_QUALITY = 0;
+    item.quality = Math.max(Math.min(item.quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
+  }
+
+  items.forEach(item => {
     const { name } = item;
+
     const sulfurasRegex = new RegExp('^' + SULFURAS, "g");
     const backstageRegex = new RegExp('^' + BACKSTAGE_PASSES, "g");
     const conjuredRegex = new RegExp('^' + CONJURED, 'g');
 
+    if(sulfurasRegex.test(name)) return;
+
     const type =
-      sulfurasRegex.test(name) ? SULFURAS
-      : conjuredRegex.test(name) ? CONJURED
-      : name === AGED_BRIE ? AGED_BRIE
+      conjuredRegex.test(name) ? CONJURED
       : backstageRegex.test(name) ? BACKSTAGE_PASSES
+      : name === AGED_BRIE ? AGED_BRIE
       : ITEM
 
-    return updateValues[type];
-  }
+    const { qualityUpdateValue } = updateValues(item)[type];
 
-  const setQuailty = (item, upgradeValues) => {
-    const MAX_QUALITY = 50;
-    const MIN_QUALITY = 0;
-
-    const { qualityUpdateValue } = upgradeValues;
-
-    if (qualityUpdateValue != null) {
-      item.quality = Math.max(Math.min(item.quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
-    }
-  }
-
-  const setSellIn = (item, upgradeValues) => {
-    const { sellInUpdateValue } = upgradeValues;
-
-    item.sell_in =
-      sellInUpdateValue != null ? item.sell_in - sellInUpdateValue
-      : item.sell_in - 1
-  }
-
-  items.forEach(item => {
-    const updateValue = getUpdateValues(item, updateValues(item));
-
-    setQuailty(item, updateValue);
-    setSellIn(item, updateValue);
+    setQuailty(item, qualityUpdateValue);
+    item.sell_in--;
   });
 };

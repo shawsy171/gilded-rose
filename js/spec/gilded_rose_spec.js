@@ -53,13 +53,17 @@ describe("Gilded Rose", function() {
     describe('"Sulfuras"', () => {
       // being a legendary item, never has to be sold or decreases in Quality
       it('should not change quality', () => {
-        items = [ new Item('Sulfuras, Hand of Ragnaros', -1, 80) ];
+        items = [ new Item('Sulfuras, Hand of Ragnaros', 0, 80) ];
+        update_quality();
+        update_quality();
         update_quality();
         expect(items[0].quality).toEqual(80);
       });
 
       it('should not change sell_in value', () => {
         items = [ new Item('Sulfuras, Hand of Ragnaros', -1, 80) ];
+        update_quality();
+        update_quality();
         update_quality();
         expect(items[0].sell_in).toEqual(-1);
       });
