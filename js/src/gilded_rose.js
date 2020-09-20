@@ -13,64 +13,49 @@ function update_quality() {
   const SULFURAS = 'Sulfuras';
   const ITEM = 'Item'
 
-  const setType = (item) => {
-
-    const sulfurasRegex = new RegExp('^' + SULFURAS, "g"); // originally used a template string but that looked confusing
-    const backstageRegex = new RegExp('^' + BACKSTAGE_PASSES, "g");
-    const conjuredRegex = new RegExp('^' + CONJURED, 'g');
-
-    const map = new WeakMap();
-    const type =
-      sulfurasRegex.test(item.name) ? SULFURAS
-      : backstageRegex.test(item.name) ? BACKSTAGE_PASSES
-      : conjuredRegex.test(item.name) ? CONJURED
-      : item.name === AGED_BRIE ? AGED_BRIE
-      : ITEM
-    map.set(item, { type });
-
-    return map;
-  }
-
-  const setUpdateValues = (item, itemMap) => {
-    const updateFn = {
-      [AGED_BRIE]: () => ({ qualityUpdateValue: 1 }),
-      [BACKSTAGE_PASSES]: () => {
-
-        const qualityUpdateValue =
+  const updateValues = (item) => ({
+    [SULFURAS]: { sellInUpdateValue: 0 },
+    [CONJURED]: { qualityUpdateValue: -2 },
+    [AGED_BRIE]: { qualityUpdateValue: 1 },
+    [BACKSTAGE_PASSES]: {
+      qualityUpdateValue:
         item.sell_in < 0 ? -item.quality
         : item.sell_in > 10 ? 1
         : item.sell_in > 6 ? 2
-        : 3;
+        : 3
+    },
+    [ITEM]: { qualityUpdateValue: item.sell_in === 0 ? -2 : -1 }
+  })
 
-        return { qualityUpdateValue }
-      },
-      [CONJURED]: () => ({ qualityUpdateValue: -2 }),
-      [ITEM]: () => {
-        const qualityUpdateValue =
-          item.sell_in === 0 ? -2 : -1;
+  const getUpdateValues = (item, updateValues) => {
+    const { name } = item;
+    const sulfurasRegex = new RegExp('^' + SULFURAS, "g");
+    const backstageRegex = new RegExp('^' + BACKSTAGE_PASSES, "g");
+    const conjuredRegex = new RegExp('^' + CONJURED, 'g');
 
-        return { qualityUpdateValue }
-      },
-      [SULFURAS]: () => ({ sellInUpdateValue: 0 }),
-    };
+    const type =
+      sulfurasRegex.test(name) ? SULFURAS
+      : conjuredRegex.test(name) ? CONJURED
+      : name === AGED_BRIE ? AGED_BRIE
+      : backstageRegex.test(name) ? BACKSTAGE_PASSES
+      : ITEM
 
-    return itemMap.set(item, updateFn[itemMap.get(item).type]());
+    return updateValues[type];
   }
 
-  const setQuailty = (item, itemMap) => {
-
+  const setQuailty = (item, upgradeValues) => {
     const MAX_QUALITY = 50;
     const MIN_QUALITY = 0;
 
-    const { qualityUpdateValue } = itemMap.get(item);
+    const { qualityUpdateValue } = upgradeValues;
 
     if (qualityUpdateValue != null) {
       item.quality = Math.max(Math.min(item.quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
     }
   }
 
-  const setSellIn = (item, itemMap) => {
-    const { sellInUpdateValue } = itemMap.get(item);
+  const setSellIn = (item, upgradeValues) => {
+    const { sellInUpdateValue } = upgradeValues;
 
     item.sell_in =
       sellInUpdateValue != null ? item.sell_in - sellInUpdateValue
@@ -78,10 +63,9 @@ function update_quality() {
   }
 
   items.forEach(item => {
-    const itemWithType = setType(item);
-    const itemWithValues = setUpdateValues(item, itemWithType);
+    const updateValue = getUpdateValues(item, updateValues(item));
 
-    setQuailty(item, itemWithValues);
-    setSellIn(item, itemWithValues);
+    setQuailty(item, updateValue);
+    setSellIn(item, updateValue);
   });
 };
