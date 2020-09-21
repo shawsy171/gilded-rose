@@ -23,12 +23,12 @@
     // this conjured item does not work properly yet
     items.push(new Item('Conjured Mana Cake', 3, 6));
 
-    var days = 2;
+    var days = 7;
 
     for (var i = 0; i < days; i++) {
       showHeaderFor(i);
       showItemsFor(i);
-      update_quality();
+      items = update_quality(items);
     }
 
     function showHeaderFor(day) {

@@ -6,66 +6,55 @@ function Item(name, sell_in, quality) {
 
 var items = []
 
-function update_quality() {
+function update_quality(items) {
   const AGED_BRIE = 'Aged Brie';
   const BACKSTAGE_PASSES = 'Backstage passes';
   const CONJURED = 'Conjured';
   const SULFURAS = 'Sulfuras';
-  const ITEM = 'Item'
+  const ITEM = 'Item';
 
-  const updateValues = (item) => ({
-    [SULFURAS]: { sellInUpdateValue: 0 },
-    [CONJURED]: { qualityUpdateValue: -2 },
-    [AGED_BRIE]: { qualityUpdateValue: 1 },
-    [BACKSTAGE_PASSES]: {
-      qualityUpdateValue:
-        item.sell_in < 0 ? -item.quality
-        : item.sell_in > 10 ? 1
-        : item.sell_in > 6 ? 2
-        : 3
-    },
-    [ITEM]: { qualityUpdateValue: item.sell_in === 0 ? -2 : -1 }
-  })
-
-  const getUpdateValues = (item, updateValues) => {
-    const { name } = item;
-    const sulfurasRegex = new RegExp('^' + SULFURAS, "g");
-    const backstageRegex = new RegExp('^' + BACKSTAGE_PASSES, "g");
-    const conjuredRegex = new RegExp('^' + CONJURED, 'g');
-
-    const type =
-      sulfurasRegex.test(name) ? SULFURAS
-      : conjuredRegex.test(name) ? CONJURED
-      : name === AGED_BRIE ? AGED_BRIE
-      : backstageRegex.test(name) ? BACKSTAGE_PASSES
-      : ITEM
-
-    return updateValues[type];
-  }
-
-  const setQuailty = (item, upgradeValues) => {
+  const setQuality = (quality, qualityUpdateValue) => {
     const MAX_QUALITY = 50;
     const MIN_QUALITY = 0;
-
-    const { qualityUpdateValue } = upgradeValues;
-
-    if (qualityUpdateValue != null) {
-      item.quality = Math.max(Math.min(item.quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
-    }
+    return Math.max(Math.min(quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
   }
 
-  const setSellIn = (item, upgradeValues) => {
-    const { sellInUpdateValue } = upgradeValues;
+  const updateValues = (item) => {
+    const { name, sell_in, quality } = item;
 
-    item.sell_in =
-      sellInUpdateValue != null ? item.sell_in - sellInUpdateValue
-      : item.sell_in - 1
+    const backstagePassesQuality =
+      sell_in < 0 ? -quality
+        : sell_in > 10 ? 1
+        : sell_in > 6 ? 2
+        : 3;
+    const itemQuality = sell_in === 0 ? -2 : -1;
+
+    const updateItem = (name, sell_in) => (quality) => new Item(name, sell_in - 1, quality);
+    const newItem = updateItem(name, sell_in);
+
+    return ({
+      [SULFURAS]: item,
+      [CONJURED]: newItem(setQuality(quality, -2)),
+      [AGED_BRIE]: newItem(setQuality(quality, 1)),
+      [BACKSTAGE_PASSES]: newItem(setQuality(quality, backstagePassesQuality)),
+      [ITEM]: newItem(setQuality(quality, itemQuality)),
+    });
+}
+
+  const getUpdateValue = (name, updateValues) => {
+    const isSulfuras = new RegExp('^' + SULFURAS, "g").test(name);
+    const isBackstagePass = new RegExp('^' + BACKSTAGE_PASSES, "g").test(name);
+    const isConjured = new RegExp('^' + CONJURED, 'g').test(name);
+    const isAgedBrie = name === AGED_BRIE;
+
+    return (
+      isSulfuras ? updateValues[SULFURAS]
+      : isConjured ? updateValues[CONJURED]
+      : isBackstagePass ? updateValues[BACKSTAGE_PASSES]
+      : isAgedBrie ? updateValues[AGED_BRIE]
+      : updateValues[ITEM]
+    )
   }
 
-  items.forEach(item => {
-    const updateValue = getUpdateValues(item, updateValues(item));
-
-    setQuailty(item, updateValue);
-    setSellIn(item, updateValue);
-  });
+  return items.map(item => getUpdateValue(item.name, updateValues(item)));
 };
