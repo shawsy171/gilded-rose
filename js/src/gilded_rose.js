@@ -24,20 +24,19 @@ function update_quality(items) {
         : 3
     },
     [ITEM]: { qualityUpdateValue: item.sell_in === 0 ? -2 : -1 }
-  })
+  });
 
-  const getType = (name) => {
+  const getUpdateValue = (name, updateValues) => {
     const isBackstagePass = new RegExp('^' + BACKSTAGE_PASSES, "g").test(name);
     const isConjured = new RegExp('^' + CONJURED, 'g').test(name);
     const isAgedBrie = name === AGED_BRIE;
 
     return (
-      isConjured ? CONJURED
-      : isBackstagePass ? BACKSTAGE_PASSES
-      : isAgedBrie ? AGED_BRIE
-      : ITEM
+      isConjured ? updateValues[CONJURED]
+      : isBackstagePass ? updateValues[BACKSTAGE_PASSES]
+      : isAgedBrie ? updateValues[AGED_BRIE]
+      : updateValues[ITEM]
     )
-
   }
 
   const setQuality = (quality, qualityUpdateValue) => {
@@ -49,12 +48,10 @@ function update_quality(items) {
   return items.map(item => {
     const { name, sell_in, quality } = item;
 
-    const sulfurasRegex = new RegExp('^' + SULFURAS, "g");
-    if(sulfurasRegex.test(name)) return item;
+    const isSulfuras = new RegExp('^' + SULFURAS, "g").test(name);
+    if (isSulfuras) return item;
 
-    const type = getType(name);
-
-    const { qualityUpdateValue } = updateValues(item)[type];
+    const { qualityUpdateValue } = getUpdateValue(name, updateValues(item));
 
     return {
       name,
