@@ -19,6 +19,8 @@ function update_quality(items) {
     return Math.max(Math.min(quality + qualityUpdateValue, MAX_QUALITY), MIN_QUALITY)
   }
 
+  const updateItem = (name, sell_in) => (quality) => new Item(name, sell_in - 1, quality);
+
   const updateValues = (item) => {
     const { name, sell_in, quality } = item;
 
@@ -29,7 +31,6 @@ function update_quality(items) {
         : 3;
     const itemQuality = sell_in === 0 ? -2 : -1;
 
-    const updateItem = (name, sell_in) => (quality) => new Item(name, sell_in - 1, quality);
     const newItem = updateItem(name, sell_in);
 
     return ({
@@ -39,7 +40,7 @@ function update_quality(items) {
       [BACKSTAGE_PASSES]: newItem(setQuality(quality, backstagePassesQuality)),
       [ITEM]: newItem(setQuality(quality, itemQuality)),
     });
-}
+  }
 
   const getUpdateValue = (name, updateValues) => {
     const isSulfuras = new RegExp('^' + SULFURAS, "g").test(name);
